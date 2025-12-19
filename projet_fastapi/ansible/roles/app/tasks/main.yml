@@ -1,0 +1,71 @@
+- name: Installer Python et pip
+  apt:
+    name:
+      - python3-pip
+      - python3-venv
+    state: present
+    update_cache: yes
+
+- name: Creer le repertoire /opt/app
+  file:
+    path: /opt/app
+    state: directory
+    owner: "{{ ansible_user }}"
+    group: "{{ ansible_user }}"
+    mode: '0755'
+
+- name: Copier les essentiels de l'application FastAPI
+#  copy:
+#    src: ../../../app/
+#    dest: /opt/app/
+#    owner: "{{ ansible_user }}"
+#    group:  "{{ ansible_user }}"
+#    mode: '0755'
+#    exclude:
+#      - "venv"
+#      - "__pycache__"
+
+  copy:
+    src: ../../../app/main.py
+    dest: /opt/app/main.py
+    owner: "{{ ansible_user }}"
+    group: "{{ ansible_user }}"
+#    owner: "{{ lookup('env','USER') }}"
+#    group: "{{ lookup('env','USER') }}"
+    mode: '0755'
+
+- copy:
+    src: ../../../app/database.py
+    dest: /opt/app/database.py
+    owner: "{{ ansible_user }}"
+    group: "{{ ansible_user }}"
+#    owner: "{{ lookup('env','USER') }}"
+#    group: "{{ lookup('env','USER') }}"
+    mode: '0755'
+
+
+- copy:
+    src: ../../../app/requirements.txt
+    dest: /opt/app/requirements.txt
+    owner: "{{ ansible_user }}"
+    group: "{{ ansible_user }}"
+#    owner: "{{ lookup('env','USER') }}"
+#    group: "{{ lookup('env','USER') }}"
+    mode: '0755'
+
+- name: Creer le venv pour FastAPI
+  command: python3 -m venv /opt/app/venv
+  args:
+    creates: /opt/app/veenv/bin/activate
+
+- name: Installer les dependances
+  pip:
+    requirements: /opt/app/requirements.txt
+    virtualenv: /opt/app/venv
+    virtualenv_python: python3
+
+- name: Lancer FastAPI avec nohup
+  shell: |
+    /opt/app/venv/bin/uvicorn main:app --host 0.0.0.0 --port 8000 &
+  args:
+    chdir: /opt/app

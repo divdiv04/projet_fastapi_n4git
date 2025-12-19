@@ -1,0 +1,14 @@
+- name: Installer PostgreSQL
+  apt: 
+    name: postgresql
+    state: present
+    update_cache: ys
+
+- name: Creer la base et l'utilisateeur
+  become_user: postgres
+  shell:
+    psql -c "CREATE DATABASE IF NOT EXISTS fastapi_db;" || true
+    psql -c "CREATE USER IF NOT EXISTS fastapi_user WITH PASSWORD 'password';" || true
+    psql -c "GRANT ALL PRIVILEGES ON DATABASE fastapi_db TO fastapi_user;"
+  args:
+    executable: /bin/bash
